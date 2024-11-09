@@ -1,11 +1,18 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from "expo-status-bar";
+import { FlatList, StyleSheet, Text, View } from "react-native";
+import { Colors } from "./config/Colors";
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      {/* User Greeting Header */}
+      <View>
+        <Text>Welcome back, Amit</Text>
+        <Text>
+          Please choose from the list of available office hours below:
+        </Text>
+      </View>
+      {/* <FlatList data={} /> */}
     </View>
   );
 }
@@ -13,8 +20,8 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: Colors.Background,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
