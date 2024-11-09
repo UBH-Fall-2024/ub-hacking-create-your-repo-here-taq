@@ -27,7 +27,8 @@ const styles = StyleSheet.create({
         flex: 1, // Make SafeAreaView take the full screen height
         backgroundColor: Colors.Background,
         paddingHorizontal: 0, // Ensure no horizontal padding
-        paddingVertical: 0, // Ensure no vertical padding
+        paddingVertical: 0,
+        width: '100%',
     },
     container: {
         flex: 1,
@@ -36,7 +37,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: Colors.Background,
-        width: 500,
     },
     textContainer: {
         gap: 15,
