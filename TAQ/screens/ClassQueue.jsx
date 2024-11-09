@@ -27,7 +27,7 @@ const ClassQueue = () => {
                 <QueueEntry UBIT={"Thirumal"} Topic={"WA4"} Question={"How do I append in a list without making a list?"}/>
                 <QueueEntry UBIT={"Thirumal"} Topic={"WA4"} Question={"How do I append in a list without making a list?"}/>
                 <QueueEntry UBIT={"Thirumal"} Topic={"WA4"} Question={"How do I append in a list without making a list?"}/>
-                <QueueEntry UBIT={"Thirumal"} Topic={"WA4"} Question={"How do I append in a list without making a list?"}/>
+                <QueueEntry UBIT={"Thirumal"} Topic={"WA4"} Question={"How do I append in a list without making a list?How do I append in a list without making a list?How do I append in a list without making a list?"}/>
                 <View style={styles.bottomSpacer} />
             </View>
         </ScrollView>
@@ -45,7 +45,7 @@ export default ClassQueue
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.Background
+        backgroundColor: Colors.Background,
     },
     container: {
         padding: 10,

@@ -62,11 +62,13 @@ export default QueueEntry
 const styles = StyleSheet.create({
     container: {
         padding: 10,
-        borderWidth: 1,
+        // borderWidth: 1,
         borderRadius: 10,
         justifyContent: "space-between",
         flexDirection: "row",
-        borderColor: "white",
+        // borderColor: "white",
+        backgroundColor: Colors.Tertiary,
+
     },
     textContainer: {
         gap: 5,
