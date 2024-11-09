@@ -2,14 +2,12 @@ import { StatusBar } from "expo-status-bar";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { Colors } from "./config/Colors";
 import User from "./screens/User";
+import Home from "./screens/Home";
+import Locations from "./screens/Locations";
+import Auth from "./screens/Auth";
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <User queueLength={3} estimatedTime={20} />
-      <StatusBar style="auto" />
-    </View>
-  );
+  return <Auth />
 }
 
 const styles = StyleSheet.create({
