@@ -1,4 +1,6 @@
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
   Platform,
   Pressable,
@@ -7,21 +9,48 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useState } from "react";
-import courses from "../assets/data/courses";
+import React, { useEffect, useState } from "react";
 import { Colors } from "../config/Colors";
-import Animated, {
-  FadeIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import Constants from "expo-constants";
+import { supabase } from "../supabase";
 
-const Locations = ({ navigation }) => {
-  const course = courses[1];
+const Locations = ({ navigation, route }) => {
+  const courseID = route.params.courseID;
+  const role = route.params.role;
+  const [loading, setLoading] = useState(true);
+  const [locations, setLocations] = useState([]);
+  const [classID, setClassID] = useState(null);
 
-  const [isScrolling, setIsScrolling] = useState(false);
+  useEffect(() => {
+    const fetchClass = async () => {
+      let { data, error } = await supabase
+        .from("classes")
+        .select("*")
+        .eq("id", courseID);
+
+      if (error) {
+        console.error("Error fetching class:", error);
+        Alert.alert("Error", error.message);
+        return;
+      }
+
+      console.log("Fetched class:", data);
+      setLocations(data[0].locations);
+      setClassID(data[0].id);
+      setLoading(false);
+    };
+
+    fetchClass();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.Primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -38,22 +67,15 @@ const Locations = ({ navigation }) => {
         style={{ height: 2, backgroundColor: "#fff9", marginVertical: 15 }}
       />
       <FlatList
-        data={course.location}
+        data={locations}
         contentContainerStyle={{ gap: 10 }}
-        onScrollBeginDrag={() => {
-          // Disable touch events while scrolling
-          setIsScrolling(true);
-        }}
-        onScrollEndDrag={() => {
-          // Enable touch events after scrolling
-          setIsScrolling(false, 150);
-        }}
         renderItem={({ item, index }) => (
           <LocationItem
             key={index}
             location={item}
             navigation={navigation}
-            disabled={isScrolling}
+            role={role}
+            classID={classID}
           />
         )}
       />
@@ -61,32 +83,26 @@ const Locations = ({ navigation }) => {
   );
 };
 
-const LocationItem = ({ location, navigation, disabled }) => {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const onPressIn = () => {
-    scale.value = withSpring(0.9, { damping: 15, stiffness: 100 });
-  };
-
-  const onPressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
-    if (disabled) return;
-    navigation.navigate("Queue"); // Navigate after animation
+const LocationItem = ({ location, navigation, role, classID }) => {
+  const onPressHandler = () => {
+    // Check if its a TA or a student
+    if (role === "Student") {
+      navigation.navigate("SQueue", { location: location, classID: classID });
+    } else {
+      navigation.navigate("Queue", { location: location, classID: classID });
+    }
   };
 
   const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
   return (
     <AnimatedPressable
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
+      // onPressIn={onPressIn}
+      // onPressOut={onPressOut}
+      onPress={onPressHandler}
       entering={FadeIn.delay(300).damping(0.5).stiffness(100)}
       exiting={FadeIn.delay(300).damping(0.5).stiffness(100)}
-      style={[{ flex: 1 }, animatedStyle]}
+      style={[{ flex: 1 }]}
     >
       <View
         style={{

@@ -30,7 +30,10 @@ const Course = ({ course, navigation, disabled }) => {
   const handlePressOut = () => {
     scale.value = withSpring(1, { damping: 15, stiffness: 200 });
     if (disabled) return;
-    navigation.navigate("Location"); // Navigate after animation
+    navigation.navigate("Location", {
+      courseID: course.class.id,
+      role: course.role,
+    }); // Navigate after animation
   };
 
   return (
@@ -46,12 +49,12 @@ const Course = ({ course, navigation, disabled }) => {
         numberOfLines={2}
         style={[styles.name, { fontSize: Platform.OS === "android" ? 14 : 18 }]}
       >
-        {course.courses.name}
+        {course.class.name}
       </Text>
       <Text
         style={[styles.code, { fontSize: Platform.OS === "android" ? 13 : 15 }]}
       >
-        {course.courses.code}
+        {course.class.code}
       </Text>
     </AnimatedPressable>
   );

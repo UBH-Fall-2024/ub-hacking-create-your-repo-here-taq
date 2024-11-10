@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Home from "./screens/Home";
 import Locations from "./screens/Locations";
 import Auth from "./screens/Auth";
-import User from "./screens/User";
+import StudentAdd from "./screens/StudentAdd";
 import ClassQueue from "./screens/ClassQueue";
 
 const Stack = createNativeStackNavigator();
@@ -26,6 +26,13 @@ function RootStack() {
       <Stack.Screen
         name="Location"
         component={Locations}
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
+      <Stack.Screen
+        name="SQueue"
+        component={StudentAdd}
         options={{
           animation: "slide_from_right",
         }}
