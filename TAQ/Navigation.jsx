@@ -30,6 +30,13 @@ function RootStack() {
           animation: "slide_from_right",
         }}
       />
+      <Stack.Screen
+        name="Queue"
+        component={ClassQueue}
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
     </Stack.Navigator>
   );
 }

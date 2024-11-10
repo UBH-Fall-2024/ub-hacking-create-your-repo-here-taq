@@ -46,12 +46,12 @@ const Course = ({ course, navigation, disabled }) => {
         numberOfLines={2}
         style={[styles.name, { fontSize: Platform.OS === "android" ? 14 : 18 }]}
       >
-        {course.name}
+        {course.courses.name}
       </Text>
       <Text
         style={[styles.code, { fontSize: Platform.OS === "android" ? 13 : 15 }]}
       >
-        {course.code}
+        {course.courses.code}
       </Text>
     </AnimatedPressable>
   );

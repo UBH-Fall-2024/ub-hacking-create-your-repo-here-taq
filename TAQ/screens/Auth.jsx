@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AppState,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -6,12 +8,95 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Colors } from "../config/Colors";
+import { supabase } from "../supabase";
 
 const Auth = ({ navigation }) => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const handleAppStateChange = (state) => {
+      if (state === "active") {
+        supabase.auth.startAutoRefresh();
+        checkSession();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    };
+
+    // Initial session check
+    checkSession();
+
+    // Add the AppState change listener
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    // Clean up the listener on component unmount
+    return () => {
+      subscription.remove();
+      supabase.auth.stopAutoRefresh();
+    };
+  }, [navigation]);
+
+  const checkSession = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session) {
+      navigation.navigate("Courses");
+    }
+  };
+
+  async function signInWithEmail() {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        Alert.alert("Error", error.message);
+      } else {
+        navigation.navigate("Courses");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function signUpWithEmail() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            name: "KDT",
+          },
+        },
+        // You can remove the options.data part unless you need it for other metadata
+      });
+
+      if (error) {
+        Alert.alert("Error", error.message);
+      } else if (data.session) {
+        navigation.navigate("Courses");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -22,9 +107,9 @@ const Auth = ({ navigation }) => {
       />
       <TextInput
         style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
@@ -32,10 +117,7 @@ const Auth = ({ navigation }) => {
         value={password}
         onChangeText={setPassword}
       />
-      <Pressable
-        onPress={() => navigation.navigate("Courses")}
-        style={styles.login}
-      >
+      <Pressable onPress={signUpWithEmail} style={styles.login}>
         <Text style={{ color: Colors.Background, fontWeight: "bold" }}>
           Login
         </Text>

@@ -1,15 +1,18 @@
 import { FlatList, StatusBar, StyleSheet, Text, View } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Colors } from "../config/Colors";
-import courses from "../assets/data/courses";
+// import courses from "../assets/data/courses";
 import Course from "../components/Course";
 
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { supabase } from "../supabase";
 
 const Home = ({ navigation }) => {
   const [isScrolling, setIsScrolling] = React.useState(false);
+  // const [user, setUser] = useState(null);
+  const [courses, setCourses] = useState([]);
 
   useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e) => {
@@ -17,6 +20,23 @@ const Home = ({ navigation }) => {
     });
 
     return unsub;
+  }, []);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const { data, error } = await supabase.from("user_courses").select(`
+          courses (*)
+        `);
+
+      if (error) {
+        console.error("Error fetching courses:", error);
+      } else {
+        console.log("Fetched courses:", data);
+        setCourses(data);
+      }
+    };
+
+    fetchCourses();
   }, []);
 
   return (
@@ -37,7 +57,12 @@ const Home = ({ navigation }) => {
             }}
           >
             <Text style={styles.welcomeText}>Welcome back, Amit!</Text>
-            <MaterialIcons name="logout" size={30} color={Colors.Red} />
+            <MaterialIcons
+              name="logout"
+              onPress={() => supabase.auth.signOut()}
+              size={30}
+              color={Colors.Red}
+            />
           </View>
           <Text style={styles.sub}>
             Please choose from the list of available office hours below:
