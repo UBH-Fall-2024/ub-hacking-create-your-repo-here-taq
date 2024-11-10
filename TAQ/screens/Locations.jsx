@@ -46,7 +46,15 @@ const Locations = ({ navigation, route }) => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View
+        style={[
+          styles.container,
+          {
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        ]}
+      >
         <ActivityIndicator size="large" color={Colors.Primary} />
       </View>
     );
@@ -66,19 +74,27 @@ const Locations = ({ navigation, route }) => {
       <View
         style={{ height: 2, backgroundColor: "#fff9", marginVertical: 15 }}
       />
-      <FlatList
-        data={locations}
-        contentContainerStyle={{ gap: 10 }}
-        renderItem={({ item, index }) => (
-          <LocationItem
-            key={index}
-            location={item}
-            navigation={navigation}
-            role={role}
-            classID={classID}
-          />
-        )}
-      />
+      {locations.length === 0 ? (
+        <View>
+          <Text style={{ color: Colors.Secondary }}>
+            No locations available for this class at the moment.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={locations}
+          contentContainerStyle={{ gap: 10 }}
+          renderItem={({ item, index }) => (
+            <LocationItem
+              key={index}
+              location={item}
+              navigation={navigation}
+              role={role}
+              classID={classID}
+            />
+          )}
+        />
+      )}
     </View>
   );
 };

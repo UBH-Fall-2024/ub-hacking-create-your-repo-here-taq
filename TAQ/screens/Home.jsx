@@ -74,7 +74,14 @@ const Home = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: Colors.Background,
+        }}
+      >
         <ActivityIndicator size="large" color={Colors.Primary} />
       </View>
     );
