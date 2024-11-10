@@ -37,7 +37,7 @@ const Locations = ({ navigation, route }) => {
 
       console.log("Fetched class:", data);
       setLocations(data[0].locations);
-      setClassID(data[0].id);
+      setClassID(data[0]?.id);
       setLoading(false);
     };
 

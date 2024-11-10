@@ -70,6 +70,34 @@ const StudentAdd = ({ route }) => {
     };
 
     getQueueIDAndLength().finally(() => setLoading(false));
+
+    const sub = supabase
+      .channel("queue_entries")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "queue_entries",
+        },
+        (payload) => {
+          switch (payload.type) {
+            case "INSERT":
+              setQueueLength((prev) => prev + 1);
+              break;
+            case "DELETE":
+              setQueueLength((prev) => prev - 1);
+              break;
+            default:
+              break;
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(sub);
+    };
   }, []);
 
   const handleOnPress = () => {
@@ -244,11 +272,13 @@ const StudentAdd = ({ route }) => {
             <TextInput
               value={tag}
               placeholder="Tag"
+              placeholderTextColor={Colors.Secondary}
               style={styles.input}
               onChangeText={setTag}
             />
             <TextInput
               value={question}
+              placeholderTextColor={Colors.Secondary}
               placeholder="Question"
               style={styles.input}
               onChangeText={setQuestion}

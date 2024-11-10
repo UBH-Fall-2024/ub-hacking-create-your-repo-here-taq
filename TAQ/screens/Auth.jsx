@@ -1,6 +1,9 @@
 import {
   Alert,
   AppState,
+  Dimensions,
+  Image,
+  Platform,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -11,6 +14,11 @@ import {
 import React, { useEffect, useState } from "react";
 import { Colors } from "../config/Colors";
 import { supabase } from "../supabase";
+import Animated, {
+  BounceIn,
+  BounceInUp,
+  FadeIn,
+} from "react-native-reanimated";
 
 const Auth = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -123,6 +131,11 @@ const Auth = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <Animated.Image
+        source={require("../assets/data/logo.png")}
+        style={styles.logo}
+        entering={BounceIn.springify().damping(80).stiffness(200).delay(100)}
+      />
       <StatusBar
         barStyle={"light-content"}
         backgroundColor="transparent"
@@ -159,6 +172,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: Colors.Background,
+  },
+  logo: {
+    width: "80%",
+    height: Dimensions.get("window").height / 3,
+    resizeMode: "cover",
+    marginTop: Platform.OS === "ios" ? -400 : 0,
   },
   input: {
     backgroundColor: Colors.Secondary,

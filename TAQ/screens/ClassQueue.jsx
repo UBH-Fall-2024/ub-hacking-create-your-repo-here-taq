@@ -68,6 +68,62 @@ const ClassQueue = ({ route }) => {
     };
 
     fetchQueueEntries();
+
+    const sub = supabase
+      .channel("queue_entries")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "queue_entries",
+        },
+        async (payload) => {
+          console.log("Queue entry added:", payload);
+
+          switch (payload.eventType) {
+            case "INSERT":
+              const { data: newEntry, error } = await supabase
+                .from("queue_entries")
+                .select("*, student:users(*)")
+                .eq("id", payload.new.id)
+                .single();
+
+              if (error) {
+                console.error(
+                  "Error fetching new entry with student data:",
+                  error
+                );
+                Alert.alert("Error", error.message);
+                return;
+              }
+
+              setEntries((prevEntries) => [...prevEntries, newEntry]);
+              break;
+            case "UPDATE":
+              setEntries((prevEntries) =>
+                prevEntries.map((entry) =>
+                  entry.id === payload.new.id
+                    ? { ...entry, ...payload.new }
+                    : entry
+                )
+              );
+              break;
+            case "DELETE":
+              setEntries((prevEntries) =>
+                prevEntries.filter((entry) => entry.id !== payload.old.id)
+              );
+              break;
+            default:
+              break;
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(sub);
+    };
   }, [queueID]);
 
   // Handle case for the TA where they need to start the queue
@@ -209,7 +265,7 @@ const ClassQueue = ({ route }) => {
             width: "100%",
           }}
         > */}
-          {/* <Pressable
+        {/* <Pressable
             style={styles.addButton}
             onPress={() => {
               Alert.alert("GOT YOU!", "You clicked the button!");
@@ -222,15 +278,13 @@ const ClassQueue = ({ route }) => {
             />
             <Text style={styles.addButtonText}>Add in Queue</Text>
           </Pressable> */}
-          <Pressable style={styles.removeButton} onPress={removeQueue}>
-            <Ionicons
-              name="remove-circle-outline"
-              size={26}
-              color={'white'}
-            />
-            <Text style={{fontWeight:'600', fontSize:18, color:'white'}}>End the Queue</Text>
-          </Pressable>
-        </View>
+        <Pressable style={styles.removeButton} onPress={removeQueue}>
+          <Ionicons name="remove-circle-outline" size={26} color={"white"} />
+          <Text style={{ fontWeight: "600", fontSize: 18, color: "white" }}>
+            End the Queue
+          </Text>
+        </Pressable>
+      </View>
       {/* </View> */}
     </SafeAreaView>
   );
@@ -278,7 +332,7 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     flexDirection: "row",
-    paddingHorizontal:20,
+    paddingHorizontal: 20,
     paddingVertical: 10,
     gap: 5,
     borderRadius: 100,
@@ -287,7 +341,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 20,
-
   },
   bottomSpacer: {
     height: 200,

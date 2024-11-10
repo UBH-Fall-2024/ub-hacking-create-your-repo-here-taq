@@ -19,7 +19,6 @@ import { supabase } from "../supabase";
 
 const Home = ({ navigation }) => {
   const [isScrolling, setIsScrolling] = React.useState(false);
-  // const [user, setUser] = useState(null);
   const [courses, setCourses] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -104,7 +103,9 @@ const Home = ({ navigation }) => {
               alignItems: "center",
             }}
           >
-            <Text style={styles.welcomeText}>Welcome back, {user.name}!</Text>
+            <Text style={styles.welcomeText}>
+              Welcome back, {user.email.split("@")[0]}!
+            </Text>
             <MaterialIcons
               name="logout"
               onPress={() => {
