@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const ClassQueue = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle={"light-content"}
         backgroundColor={"transparent"}
@@ -118,6 +119,7 @@ const ClassQueue = () => {
         />
         <Text style={styles.addButtonText}>Add in Queue</Text>
       </Pressable>
+    </View>
     </SafeAreaView>
   );
 };
@@ -128,6 +130,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: Colors.Background,
+    paddingTop: 40,
   },
   container: {
     padding: 10,
@@ -145,6 +148,7 @@ const styles = StyleSheet.create({
     padding: 10,
     gap: 20,
     borderColor: Colors.Primary,
+    marginBottom: 20,
   },
   addButton: {
     flexDirection: "row",
@@ -165,6 +169,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   bottomSpacer: {
-    height: 80, // Adjust height based on the space you want between the last item and the button
+    height: 100, // Adjust height based on the space you want between the last item and the button
   },
 });
