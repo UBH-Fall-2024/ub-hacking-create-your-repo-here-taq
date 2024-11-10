@@ -153,6 +153,7 @@ const ClassQueue = ({ route }) => {
           <View style={styles.queueContainer}>
             {entries.length !== 0 ? (
               <FlatList
+                showsVerticalScrollIndicator={false}
                 data={entries}
                 contentContainerStyle={{ gap: 20 }}
                 renderItem={({ item, index }) => (
@@ -198,7 +199,7 @@ const ClassQueue = ({ route }) => {
             <View style={styles.bottomSpacer} />
           </View>
         </View>
-        <View
+        {/* <View
           style={{
             flexDirection: "row",
             justifyContent: "space-around",
@@ -207,8 +208,8 @@ const ClassQueue = ({ route }) => {
             alignItems: "center",
             width: "100%",
           }}
-        >
-          <Pressable
+        > */}
+          {/* <Pressable
             style={styles.addButton}
             onPress={() => {
               Alert.alert("GOT YOU!", "You clicked the button!");
@@ -220,16 +221,17 @@ const ClassQueue = ({ route }) => {
               color={Colors.Background}
             />
             <Text style={styles.addButtonText}>Add in Queue</Text>
-          </Pressable>
+          </Pressable> */}
           <Pressable style={styles.removeButton} onPress={removeQueue}>
             <Ionicons
               name="remove-circle-outline"
-              size={24}
-              color={Colors.Background}
+              size={26}
+              color={'white'}
             />
+            <Text style={{fontWeight:'600', fontSize:18, color:'white'}}>End the Queue</Text>
           </Pressable>
         </View>
-      </View>
+      {/* </View> */}
     </SafeAreaView>
   );
 };
@@ -240,7 +242,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: Colors.Background,
-    paddingTop: 40,
+    paddingTop: 10,
   },
   container: {
     padding: 10,
@@ -275,14 +277,19 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   removeButton: {
+    flexDirection: "row",
+    paddingHorizontal:20,
+    paddingVertical: 10,
+    gap: 5,
+    borderRadius: 100,
+    marginHorizontal: 20,
     backgroundColor: Colors.Red,
-    borderRadius: 25,
-    width: "13%",
-    aspectRatio: 1 / 1,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 20,
+
   },
   bottomSpacer: {
-    height: 100,
+    height: 200,
   },
 });

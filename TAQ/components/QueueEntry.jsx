@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   nameContainer: {
     flexDirection: "row",
-    gap: 15,
+    gap: 8,
     alignItems: "center",
     fontWeight: "bold",
     backgroundColor: "",
