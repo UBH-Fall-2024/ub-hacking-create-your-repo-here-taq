@@ -11,26 +11,26 @@ const Stack = createNativeStackNavigator();
 
 function RootStack() {
   return (
-    <ClassQueue />
-    // <Stack.Navigator screenOptions={{ headerShown: false }}>
-    //   <Stack.Screen name="Auth" component={Auth} />
-    //   <Stack.Screen
-    //     name="Courses"
-    //     component={Home}
-    //     options={{
-    //       animation: "slide_from_bottom",
-    //       headerBackButtonMenuEnabled: false,
-    //       gestureEnabled: false,
-    //     }}
-    //   />
-    //   <Stack.Screen
-    //     name="Location"
-    //     component={Locations}
-    //     options={{
-    //       animation: "slide_from_right",
-    //     }}
-    //   />
-    // </Stack.Navigator>
+    // <ClassQueue />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Auth" component={Auth} />
+      <Stack.Screen
+        name="Courses"
+        component={Home}
+        options={{
+          animation: "slide_from_bottom",
+          headerBackButtonMenuEnabled: false,
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name="Location"
+        component={Locations}
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
+    </Stack.Navigator>
   );
 }
 

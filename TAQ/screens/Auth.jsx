@@ -1,5 +1,6 @@
 import {
   Pressable,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -8,12 +9,17 @@ import {
 import React, { useState } from "react";
 import { Colors } from "../config/Colors";
 
-const Auth = () => {
+const Auth = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        barStyle={"light-content"}
+        backgroundColor="transparent"
+        translucent
+      />
       <TextInput
         style={styles.input}
         placeholder="Username"
@@ -26,7 +32,10 @@ const Auth = () => {
         value={password}
         onChangeText={setPassword}
       />
-      <Pressable style={styles.login}>
+      <Pressable
+        onPress={() => navigation.navigate("Courses")}
+        style={styles.login}
+      >
         <Text style={{ color: Colors.Background, fontWeight: "bold" }}>
           Login
         </Text>

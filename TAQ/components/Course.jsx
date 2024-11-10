@@ -1,13 +1,59 @@
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import React from "react";
 import { Colors } from "../config/Colors";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 
-const Course = ({ course, isLocation }) => {
+const Course = ({ course, navigation, disabled }) => {
+  const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.9, { damping: 15, stiffness: 100 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+    if (disabled) return;
+    navigation.navigate("Location"); // Navigate after animation
+  };
+
   return (
-    <View style={styles.container}>
-      <Text ellipsizeMode="tail" numberOfLines={2} style={styles.name}>{course.name}</Text>
-      <Text style={styles.code}>{course.code}</Text>
-    </View>
+    <AnimatedPressable
+      style={[styles.container, animatedStyle]}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      delayLongPress={150}
+      onLongPress={() => {}}
+    >
+      <Text
+        ellipsizeMode="tail"
+        numberOfLines={2}
+        style={[styles.name, { fontSize: Platform.OS === "android" ? 14 : 18 }]}
+      >
+        {course.name}
+      </Text>
+      <Text
+        style={[styles.code, { fontSize: Platform.OS === "android" ? 13 : 15 }]}
+      >
+        {course.code}
+      </Text>
+    </AnimatedPressable>
   );
 };
 
@@ -23,13 +69,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: 13,
     fontWeight: "bold",
     color: "black",
     marginBottom: 10,
   },
   code: {
-    fontSize: 12,
     color: "black",
   },
 });
