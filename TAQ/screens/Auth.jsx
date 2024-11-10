@@ -75,23 +75,46 @@ const Auth = ({ navigation }) => {
   async function signUpWithEmail() {
     setLoading(true);
     try {
+      // First, sign up the user
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
         options: {
           data: {
-            name: "KDT",
+            name: "Amit",
           },
         },
-        // You can remove the options.data part unless you need it for other metadata
       });
 
       if (error) {
         Alert.alert("Error", error.message);
-      } else if (data.session) {
-        navigation.navigate("Courses");
+        return; // Exit early if there's an error
+      }
+
+      // If signup successful, insert into public.users
+      if (data.user) {
+        const { error: insertError } = await supabase.from("users").insert([
+          {
+            id: data.user.id, // Use the auth user's ID
+            name: "Amit",
+            email: data.user.email,
+            role: "Student",
+          },
+        ]);
+
+        if (insertError) {
+          console.error("Error inserting user:", insertError);
+          Alert.alert("Error", "Failed to create user profile");
+          return;
+        }
+
+        // If everything successful, navigate
+        if (data.session) {
+          navigation.navigate("Courses");
+        }
       }
     } catch (error) {
+      console.error("Unexpected error:", error);
       Alert.alert("Error", error.message);
     } finally {
       setLoading(false);
@@ -115,9 +138,10 @@ const Auth = ({ navigation }) => {
         style={styles.input}
         placeholder="Password"
         value={password}
+        secureTextEntry
         onChangeText={setPassword}
       />
-      <Pressable onPress={signUpWithEmail} style={styles.login}>
+      <Pressable onPress={signInWithEmail} style={styles.login}>
         <Text style={{ color: Colors.Background, fontWeight: "bold" }}>
           Login
         </Text>

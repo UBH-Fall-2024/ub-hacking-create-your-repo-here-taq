@@ -1,4 +1,12 @@
-import { FlatList, StatusBar, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -13,6 +21,8 @@ const Home = ({ navigation }) => {
   const [isScrolling, setIsScrolling] = React.useState(false);
   // const [user, setUser] = useState(null);
   const [courses, setCourses] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e) => {
@@ -24,9 +34,15 @@ const Home = ({ navigation }) => {
 
   useEffect(() => {
     const fetchCourses = async () => {
-      const { data, error } = await supabase.from("user_courses").select(`
-          courses (*)
-        `);
+      const { data, error } = await supabase
+        .from("user_courses")
+        .select(
+          `
+          *,
+          class (*)
+        `
+        )
+        .eq("user", (await supabase.auth.getUser()).data.user.id);
 
       if (error) {
         console.error("Error fetching courses:", error);
@@ -36,8 +52,33 @@ const Home = ({ navigation }) => {
       }
     };
 
-    fetchCourses();
+    const fetchUser = async () => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", (await supabase.auth.getUser()).data.user.id);
+
+      if (error) {
+        console.error("Error fetching user:", error);
+        Alert.alert("Error", error.message);
+      } else {
+        console.log("Fetched user:", data);
+        setUser(data[0]);
+      }
+    };
+
+    Promise.all([fetchCourses(), fetchUser()]).then(() => {
+      setLoading(false);
+    });
   }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={Colors.Primary} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -56,10 +97,13 @@ const Home = ({ navigation }) => {
               alignItems: "center",
             }}
           >
-            <Text style={styles.welcomeText}>Welcome back, Amit!</Text>
+            <Text style={styles.welcomeText}>Welcome back, {user.name}!</Text>
             <MaterialIcons
               name="logout"
-              onPress={() => supabase.auth.signOut()}
+              onPress={() => {
+                supabase.auth.signOut();
+                navigation.goBack();
+              }}
               size={30}
               color={Colors.Red}
             />
@@ -73,26 +117,34 @@ const Home = ({ navigation }) => {
         <View
           style={{ height: 2, backgroundColor: "#fff9", marginVertical: 15 }}
         ></View>
-        <FlatList
-          data={courses}
-          numColumns={2}
-          onScrollBeginDrag={() => {
-            // Disable touch events while scrolling
-            setIsScrolling(true);
-          }}
-          onScrollEndDrag={() => {
-            // Enable touch events after scrolling
-            setIsScrolling(false, 150);
-          }}
-          renderItem={({ item, index }) => (
-            <Course
-              key={index}
-              course={item}
-              navigation={navigation}
-              disabled={isScrolling}
-            />
-          )}
-        />
+        {courses.length === 0 ? (
+          <View>
+            <Text style={styles.fallbackText}>
+              You have no courses yet :( please check back later
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={courses}
+            numColumns={2}
+            onScrollBeginDrag={() => {
+              // Disable touch events while scrolling
+              setIsScrolling(true);
+            }}
+            onScrollEndDrag={() => {
+              // Enable touch events after scrolling
+              setIsScrolling(false, 150);
+            }}
+            renderItem={({ item, index }) => (
+              <Course
+                key={index}
+                course={item}
+                navigation={navigation}
+                disabled={isScrolling}
+              />
+            )}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -116,5 +168,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.Secondary,
     marginVertical: 10,
+  },
+  fallbackText: {
+    color: Colors.Secondary,
+    fontSize: 16,
+    textAlign: "center",
   },
 });
