@@ -7,6 +7,7 @@ import {
   Alert,
   Modal,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Colors } from "../config/Colors";
@@ -15,12 +16,12 @@ import { supabase } from "../supabase";
 
 const StudentAdd = ({ route }) => {
   const [queueLength, setQueueLength] = useState(0);
-  const [estimatedTime, setEstimatedTime] = useState(1000000);
   const [inQueue, setInQueue] = useState(false);
   const [queueID, setQueueID] = useState(null);
   const [question, setQuestion] = useState("");
   const [tag, setTag] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getQueueIDAndLength = async () => {
@@ -30,8 +31,7 @@ const StudentAdd = ({ route }) => {
           .from("queues")
           .select("id")
           .eq("location", route.params.location)
-          .eq("class", route.params.classID)
-          .single();
+          .eq("class", route.params.classID);
 
         if (queueIDError) {
           console.error("Error fetching queueID:", queueIDError);
@@ -39,14 +39,21 @@ const StudentAdd = ({ route }) => {
           return;
         }
 
-        console.log("Fetched queueID:", queueID);
-        setQueueID(queueID.id);
+        if (queueID.length === 0) {
+          console.log("No queue available for this location");
+          setQueueID(null);
+          return;
+        }
+
+        console.log("Fetched queueID:", queueID[0].id);
+        setQueueID(queueID[0].id);
 
         // Get the queue length
         let { data: queueEntries, error: queueLengthError } = await supabase
           .from("queue_entries")
           .select("*")
-          .eq("queue", queueID.id);
+          .eq("queue", queueID[0].id)
+          .lt("created_at", new Date().toISOString());
 
         if (queueLengthError) {
           console.error("Error fetching queueLength:", queueLengthError);
@@ -62,7 +69,7 @@ const StudentAdd = ({ route }) => {
       }
     };
 
-    getQueueIDAndLength();
+    getQueueIDAndLength().finally(() => setLoading(false));
   }, []);
 
   const handleOnPress = () => {
@@ -150,6 +157,35 @@ const StudentAdd = ({ route }) => {
     }
   };
 
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: Colors.Background,
+        }}
+      >
+        <ActivityIndicator size="large" color={Colors.Primary} />
+      </View>
+    );
+  }
+
+  // Fallback if theres no TA queue available at the moment
+  if (queueID == null) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.container, { padding: 10 }]}>
+          <Text style={styles.header}>No Queue Available</Text>
+          <Text style={styles.description}>
+            There is currently no queue available for this location.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -195,7 +231,7 @@ const StudentAdd = ({ route }) => {
         </Pressable>
       </View>
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {

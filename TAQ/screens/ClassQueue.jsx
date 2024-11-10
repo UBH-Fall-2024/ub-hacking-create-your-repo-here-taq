@@ -5,121 +5,231 @@ import {
   Pressable,
   ScrollView,
   StatusBar,
+  FlatList,
+  Alert,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import QueueEntry from "../components/QueueEntry";
 import { Colors } from "../config/Colors";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { supabase } from "../supabase";
 
-const ClassQueue = () => {
+const ClassQueue = ({ route }) => {
+  const location = route.params.location;
+  const classID = route.params.classID;
+  const [entries, setEntries] = useState([]);
+  const [queueID, setQueueID] = useState(null);
+
+  useEffect(() => {
+    // Add code to fetch queueID
+    const fetchQueueID = async () => {
+      let { data: queueID, error } = await supabase
+        .from("queues")
+        .select("id")
+        .eq("class", classID)
+        .eq("location", location);
+
+      if (error) {
+        console.error("Error fetching queue ID:", error);
+        Alert.alert("Error", error.message);
+        return;
+      }
+
+      if (queueID.length === 0) {
+        console.log("No queue available for this class");
+        return;
+      }
+
+      setQueueID(queueID[0].id);
+    };
+    fetchQueueID();
+  }, [classID, location]);
+
+  useEffect(() => {
+    if (!queueID) return;
+
+    // Code to fetch queue entries
+    const fetchQueueEntries = async () => {
+      let { data: queueEntries, error } = await supabase
+        .from("queue_entries")
+        .select("*, student:users(*)")
+        .eq("queue", queueID)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching queue entries:", error);
+        Alert.alert("Error", error.message);
+        return;
+      }
+
+      console.log("Fetched queue entries:", queueEntries);
+      setEntries(queueEntries);
+    };
+
+    fetchQueueEntries();
+  }, [queueID]);
+
+  // Handle case for the TA where they need to start the queue
+  if (!queueID) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <Text style={styles.header}>No Queue Available</Text>
+          <Text
+            style={{
+              color: Colors.Primary,
+              textAlign: "center",
+              fontSize: 14,
+              marginBottom: 20,
+            }}
+          >
+            It looks like there is no queue available for this class yet. Please
+            create one to get started!
+          </Text>
+          <Pressable
+            style={styles.addButton}
+            onPress={async () => {
+              // Add functionality to create a new queue
+              const { data, error } = await supabase
+                .from("queues")
+                .insert([
+                  {
+                    class: classID,
+                    location: location,
+                    active: true,
+                    owner: (await supabase.auth.getUser()).data.user.id,
+                  },
+                ])
+                .select();
+
+              if (error) {
+                console.error("Error creating queue:", error);
+                Alert.alert("Error", error.message);
+                return;
+              }
+
+              setQueueID(data[0].id);
+              Alert.alert("Success", "Queue has been created successfully!");
+            }}
+          >
+            <MaterialIcons
+              name="add-circle-outline"
+              size={24}
+              color={Colors.Background}
+            />
+            <Text style={styles.addButtonText}>Create Queue</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const removeQueue = async () => {
+    // Add functionality to remove the queue
+    const { error } = await supabase.from("queues").delete().eq("id", queueID);
+
+    if (error) {
+      console.error("Error removing queue:", error);
+      Alert.alert("Error", error.message);
+      return;
+    }
+
+    setQueueID(null);
+    setEntries([]);
+    Alert.alert("Success", "Queue has been removed successfully!");
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-    <View style={styles.safeArea}>
-      <StatusBar
-        barStyle={"light-content"}
-        backgroundColor={"transparent"}
-        translucent
-      />
-      <ScrollView style={styles.container}>
-        <Text style={styles.header}>Class Queue</Text>
-        <View style={styles.queueContainer}>
-          <QueueEntry
-            UBIT={"Manav"}
-            Topic={"PA2"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Amit"}
-            Topic={"Worksheet"}
-            Question={
-              "How do I append in a list without making a list? How do I reproduce?"
-            }
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={"How do I append in a list without making a list?"}
-          />
-          <QueueEntry
-            UBIT={"Thirumal"}
-            Topic={"WA4"}
-            Question={
-              "How do I append in a list without making a list?How do I append in a list without making a list?How do I append in a list without making a list?"
-            }
-          />
-          <View style={styles.bottomSpacer} />
-        </View>
-      </ScrollView>
-      <Pressable
-        style={styles.addButton}
-        onPress={() => {
-          /* Add functionality to add a person to the queue */
-        }}
-      >
-        <MaterialIcons
-          name="add-circle-outline"
-          size={24}
-          color={Colors.Background}
+      <View style={styles.safeArea}>
+        <StatusBar
+          barStyle={"light-content"}
+          backgroundColor={"transparent"}
+          translucent
         />
-        <Text style={styles.addButtonText}>Add in Queue</Text>
-      </Pressable>
-    </View>
+        <View style={styles.container}>
+          <Text style={styles.header}>Class Queue</Text>
+          <View style={styles.queueContainer}>
+            {entries.length !== 0 ? (
+              <FlatList
+                data={entries}
+                contentContainerStyle={{ gap: 20 }}
+                renderItem={({ item, index }) => (
+                  <QueueEntry
+                    key={index}
+                    UBIT={item.student.name}
+                    Topic={item.tag}
+                    Question={item.question}
+                    onRemove={async () => {
+                      /* Add functionality to remove a person from the queue */
+                      const { error } = await supabase
+                        .from("queue_entries")
+                        .delete()
+                        .eq("student", item.student.id)
+                        .eq("queue", queueID);
+
+                      if (error) {
+                        console.error("Error removing queue entry:", error);
+                        Alert.alert("Error", error.message);
+                        return;
+                      }
+
+                      // Update the state to remove the entry
+                      setEntries((prevEntries) =>
+                        prevEntries.filter((entry) => entry.id !== item.id)
+                      );
+                    }}
+                  />
+                )}
+              />
+            ) : (
+              <Text
+                style={{
+                  color: Colors.Primary,
+                  textAlign: "center",
+                  fontSize: 16,
+                }}
+              >
+                No entries yet! Looks like everyone is too busy coding or maybe
+                the TAs are on a coffee break. ☕️
+              </Text>
+            )}
+            <View style={styles.bottomSpacer} />
+          </View>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-around",
+            position: "absolute",
+            bottom: 50,
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          <Pressable
+            style={styles.addButton}
+            onPress={() => {
+              Alert.alert("GOT YOU!", "You clicked the button!");
+            }}
+          >
+            <MaterialIcons
+              name="add-circle-outline"
+              size={24}
+              color={Colors.Background}
+            />
+            <Text style={styles.addButtonText}>Add in Queue</Text>
+          </Pressable>
+          <Pressable style={styles.removeButton} onPress={removeQueue}>
+            <Ionicons
+              name="remove-circle-outline"
+              size={24}
+              color={Colors.Background}
+            />
+          </Pressable>
+        </View>
+      </View>
     </SafeAreaView>
   );
 };
@@ -157,10 +267,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 100,
-    position: "absolute",
-    bottom: 50, // Adds some spacing from the bottom of the screen
-    alignSelf: "center",
-    width: "90%",
   },
   addButtonText: {
     color: Colors.Background,
@@ -168,7 +274,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 8,
   },
+  removeButton: {
+    backgroundColor: Colors.Red,
+    borderRadius: 25,
+    width: "13%",
+    aspectRatio: 1 / 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   bottomSpacer: {
-    height: 100, // Adjust height based on the space you want between the last item and the button
+    height: 100,
   },
 });
