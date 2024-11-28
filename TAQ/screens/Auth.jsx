@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   AppState,
   Dimensions,
@@ -14,11 +15,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { Colors } from "../config/Colors";
 import { supabase } from "../supabase";
-import Animated, {
-  BounceIn,
-  BounceInUp,
-  FadeIn,
-} from "react-native-reanimated";
+import Animated, { BounceIn } from "react-native-reanimated";
 
 const Auth = ({ navigation }) => {
   const [email, setEmail] = useState("");

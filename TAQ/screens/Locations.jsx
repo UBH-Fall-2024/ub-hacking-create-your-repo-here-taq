@@ -9,11 +9,18 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import { Colors } from "../config/Colors";
-import Animated, { FadeIn } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import Constants from "expo-constants";
 import { supabase } from "../supabase";
+import * as Haptics from "expo-haptics";
+import LocationItem from "../components/LocationItem";
 
 const Locations = ({ navigation, route }) => {
   const courseID = route.params.courseID;
@@ -96,51 +103,6 @@ const Locations = ({ navigation, route }) => {
         />
       )}
     </View>
-  );
-};
-
-const LocationItem = ({ location, navigation, role, classID }) => {
-  const onPressHandler = () => {
-    // Check if its a TA or a student
-    if (role === "Student") {
-      navigation.navigate("SQueue", { location: location, classID: classID });
-    } else {
-      navigation.navigate("Queue", { location: location, classID: classID });
-    }
-  };
-
-  const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-  return (
-    <AnimatedPressable
-      // onPressIn={onPressIn}
-      // onPressOut={onPressOut}
-      onPress={onPressHandler}
-      entering={FadeIn.delay(300).damping(0.5).stiffness(100)}
-      exiting={FadeIn.delay(300).damping(0.5).stiffness(100)}
-      style={[{ flex: 1 }]}
-    >
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: Colors.Secondary,
-          padding: 30,
-          borderRadius: 15,
-          margin: 10,
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            color: Colors.Background,
-            fontWeight: "bold",
-            fontSize: Platform.OS === "android" ? 14 : 18,
-          }}
-        >
-          {location}
-        </Text>
-      </View>
-    </AnimatedPressable>
   );
 };
 

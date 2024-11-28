@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Colors } from "../config/Colors";
@@ -16,20 +16,25 @@ import Course from "../components/Course";
 
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { supabase } from "../supabase";
+import CustomAlert from "../components/CustomAlert";
 
 const Home = ({ navigation }) => {
-  const [isScrolling, setIsScrolling] = React.useState(false);
   const [courses, setCourses] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  // const [modalVisible, setModalVisible] = useState(false);
+
+  const signoutButtonTriggerRef = useRef(false);
 
   useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e) => {
-      e.preventDefault();
+      if (!signoutButtonTriggerRef.current) {
+        e.preventDefault();
+      }
     });
 
     return unsub;
-  }, []);
+  }, [navigation]);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -108,8 +113,9 @@ const Home = ({ navigation }) => {
             </Text>
             <MaterialIcons
               name="logout"
-              onPress={() => {
-                supabase.auth.signOut();
+              onPress={async () => {
+                await supabase.auth.signOut();
+                signoutButtonTriggerRef.current = true;
                 navigation.goBack();
               }}
               size={30}
@@ -135,25 +141,23 @@ const Home = ({ navigation }) => {
           <FlatList
             data={courses}
             numColumns={2}
-            onScrollBeginDrag={() => {
-              // Disable touch events while scrolling
-              setIsScrolling(true);
-            }}
-            onScrollEndDrag={() => {
-              // Enable touch events after scrolling
-              setIsScrolling(false, 150);
-            }}
             renderItem={({ item, index }) => (
-              <Course
-                key={index}
-                course={item}
-                navigation={navigation}
-                disabled={isScrolling}
-              />
+              <Course key={index} course={item} navigation={navigation} />
             )}
           />
         )}
       </View>
+      {/* Not Working! */}
+      {/* <CustomAlert
+        visible={modalVisible}
+        message="Are you sure you want to sign out?"
+        onClose={() => setModalVisible(false)}
+        onConfirm={async () => {
+          await supabase.auth.signOut();
+          signoutButtonTriggerRef.current = true;
+          navigation.goBack();
+        }}
+      /> */}
     </SafeAreaView>
   );
 };
@@ -163,7 +167,7 @@ export default Home;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0d031b",
+    backgroundColor: Colors.Background,
     padding: 10,
   },
   welcomeText: {

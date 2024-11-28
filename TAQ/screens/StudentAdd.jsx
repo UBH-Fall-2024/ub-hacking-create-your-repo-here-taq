@@ -284,7 +284,14 @@ const StudentAdd = ({ route }) => {
               onChangeText={setQuestion}
             />
             <Pressable
-              onPress={handleOnPress}
+              onPress={() => {
+                if (question.length === 0 || tag.length === 0) {
+                  Alert.alert("Error", "Please fill out all fields");
+                  return;
+                }
+
+                handleOnPress();
+              }}
               style={{
                 padding: 20,
                 backgroundColor: Colors.Blue,
@@ -353,7 +360,7 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: Colors.Background,
     borderWidth: 1,
-    borderColor: "#cccccc",
+    borderColor: Colors.Secondary,
     borderRadius: 25,
     borderRadius: 20,
     width: "90%",

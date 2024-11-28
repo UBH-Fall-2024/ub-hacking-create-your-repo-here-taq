@@ -7,6 +7,7 @@ import {
   StatusBar,
   FlatList,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import QueueEntry from "../components/QueueEntry";
@@ -14,12 +15,15 @@ import { Colors } from "../config/Colors";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "../supabase";
+import CustomAlert from "../components/CustomAlert";
 
 const ClassQueue = ({ route }) => {
   const location = route.params.location;
   const classID = route.params.classID;
   const [entries, setEntries] = useState([]);
   const [queueID, setQueueID] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     // Add code to fetch queueID
@@ -43,88 +47,121 @@ const ClassQueue = ({ route }) => {
 
       setQueueID(queueID[0].id);
     };
-    fetchQueueID();
-  }, [classID, location]);
-
-  useEffect(() => {
-    if (!queueID) return;
-
-    // Code to fetch queue entries
-    const fetchQueueEntries = async () => {
-      let { data: queueEntries, error } = await supabase
-        .from("queue_entries")
-        .select("*, student:users(*)")
-        .eq("queue", queueID)
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        console.error("Error fetching queue entries:", error);
-        Alert.alert("Error", error.message);
+    fetchQueueID().finally(() => {
+      if (!queueID) {
+        setLoading(false);
         return;
       }
 
-      console.log("Fetched queue entries:", queueEntries);
-      setEntries(queueEntries);
-    };
+      // Code to fetch queue entries
+      const fetchQueueEntries = async () => {
+        let { data: queueEntries, error } = await supabase
+          .from("queue_entries")
+          .select("*, student:users(*)")
+          .eq("queue", queueID)
+          .order("created_at", { ascending: true });
 
-    fetchQueueEntries();
-
-    const sub = supabase
-      .channel("queue_entries")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "queue_entries",
-        },
-        async (payload) => {
-          console.log("Queue entry added:", payload);
-
-          switch (payload.eventType) {
-            case "INSERT":
-              const { data: newEntry, error } = await supabase
-                .from("queue_entries")
-                .select("*, student:users(*)")
-                .eq("id", payload.new.id)
-                .single();
-
-              if (error) {
-                console.error(
-                  "Error fetching new entry with student data:",
-                  error
-                );
-                Alert.alert("Error", error.message);
-                return;
-              }
-
-              setEntries((prevEntries) => [...prevEntries, newEntry]);
-              break;
-            case "UPDATE":
-              setEntries((prevEntries) =>
-                prevEntries.map((entry) =>
-                  entry.id === payload.new.id
-                    ? { ...entry, ...payload.new }
-                    : entry
-                )
-              );
-              break;
-            case "DELETE":
-              setEntries((prevEntries) =>
-                prevEntries.filter((entry) => entry.id !== payload.old.id)
-              );
-              break;
-            default:
-              break;
-          }
+        if (error) {
+          console.error("Error fetching queue entries:", error);
+          Alert.alert("Error", error.message);
+          return;
         }
-      )
-      .subscribe();
 
-    return () => {
-      supabase.removeChannel(sub);
-    };
-  }, [queueID]);
+        console.log("Fetched queue entries:", queueEntries);
+        setEntries(queueEntries);
+      };
+
+      fetchQueueEntries().finally(() => setLoading(false));
+
+      const sub = supabase
+        .channel("queue_entries")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "queue_entries",
+          },
+          async (payload) => {
+            console.log("Queue entry added:", payload);
+
+            switch (payload.eventType) {
+              case "INSERT":
+                const { data: newEntry, error } = await supabase
+                  .from("queue_entries")
+                  .select("*, student:users(*)")
+                  .eq("id", payload.new.id)
+                  .single();
+
+                if (error) {
+                  console.error(
+                    "Error fetching new entry with student data:",
+                    error
+                  );
+                  Alert.alert("Error", error.message);
+                  return;
+                }
+
+                setEntries((prevEntries) => [...prevEntries, newEntry]);
+                break;
+              case "UPDATE":
+                setEntries((prevEntries) =>
+                  prevEntries.map((entry) =>
+                    entry.id === payload.new.id
+                      ? { ...entry, ...payload.new }
+                      : entry
+                  )
+                );
+                break;
+              case "DELETE":
+                setEntries((prevEntries) =>
+                  prevEntries.filter((entry) => entry.id !== payload.old.id)
+                );
+                break;
+              default:
+                break;
+            }
+          }
+        )
+        .subscribe();
+    });
+  }, [classID, location]);
+
+  // useEffect(() => {
+  //   return () => {
+  //     supabase.removeChannel(sub);
+  //   };
+  // }, [queueID]);
+
+  const removeQueue = async () => {
+    // Add functionality to remove the queue
+    const { error } = await supabase.from("queues").delete().eq("id", queueID);
+
+    if (error) {
+      console.error("Error removing queue:", error);
+      Alert.alert("Error", error.message);
+      return;
+    }
+
+    setQueueID(null);
+    setEntries([]);
+    // Alert.alert("Success", "Queue has been removed successfully!");
+  };
+
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: Colors.Background,
+        }}
+      >
+        <ActivityIndicator size={"large"} color={Colors.Primary} />
+      </View>
+    );
+  }
 
   // Handle case for the TA where they need to start the queue
   if (!queueID) {
@@ -166,7 +203,7 @@ const ClassQueue = ({ route }) => {
               }
 
               setQueueID(data[0].id);
-              Alert.alert("Success", "Queue has been created successfully!");
+              // Alert.alert("Success", "Queue has been created successfully!");
             }}
           >
             <MaterialIcons
@@ -180,21 +217,6 @@ const ClassQueue = ({ route }) => {
       </SafeAreaView>
     );
   }
-
-  const removeQueue = async () => {
-    // Add functionality to remove the queue
-    const { error } = await supabase.from("queues").delete().eq("id", queueID);
-
-    if (error) {
-      console.error("Error removing queue:", error);
-      Alert.alert("Error", error.message);
-      return;
-    }
-
-    setQueueID(null);
-    setEntries([]);
-    Alert.alert("Success", "Queue has been removed successfully!");
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -255,37 +277,22 @@ const ClassQueue = ({ route }) => {
             <View style={styles.bottomSpacer} />
           </View>
         </View>
-        {/* <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-around",
-            position: "absolute",
-            bottom: 50,
-            alignItems: "center",
-            width: "100%",
-          }}
-        > */}
-        {/* <Pressable
-            style={styles.addButton}
-            onPress={() => {
-              Alert.alert("GOT YOU!", "You clicked the button!");
-            }}
-          >
-            <MaterialIcons
-              name="add-circle-outline"
-              size={24}
-              color={Colors.Background}
-            />
-            <Text style={styles.addButtonText}>Add in Queue</Text>
-          </Pressable> */}
-        <Pressable style={styles.removeButton} onPress={removeQueue}>
+        <Pressable
+          style={styles.removeButton}
+          onPress={() => setModalVisible(true)}
+        >
           <Ionicons name="remove-circle-outline" size={26} color={"white"} />
           <Text style={{ fontWeight: "600", fontSize: 18, color: "white" }}>
             End the Queue
           </Text>
         </Pressable>
       </View>
-      {/* </View> */}
+      <CustomAlert
+        visible={modalVisible}
+        message="Are you sure you want to end this queue?"
+        onClose={() => setModalVisible(false)}
+        onConfirm={() => removeQueue()}
+      />
     </SafeAreaView>
   );
 };
@@ -336,11 +343,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 5,
     borderRadius: 100,
-    marginHorizontal: 20,
     backgroundColor: Colors.Red,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
+    position: "absolute",
+    bottom: 10,
+    width: "80%",
+    alignSelf: "center",
   },
   bottomSpacer: {
     height: 200,
