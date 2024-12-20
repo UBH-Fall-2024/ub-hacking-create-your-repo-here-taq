@@ -22,6 +22,9 @@ const StudentAdd = ({ route }) => {
   const [tag, setTag] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const supabaseRef = React.useRef(null);
+
+  console.log(route.params);
 
   useEffect(() => {
     const getQueueIDAndLength = async () => {
@@ -53,6 +56,7 @@ const StudentAdd = ({ route }) => {
           .from("queue_entries")
           .select("*")
           .eq("queue", queueID[0].id)
+          .neq("student", route.params.userId)
           .lt("created_at", new Date().toISOString());
 
         if (queueLengthError) {
@@ -86,6 +90,7 @@ const StudentAdd = ({ route }) => {
               setQueueLength((prev) => prev + 1);
               break;
             case "DELETE":
+              // Check if the student is in the queue
               setQueueLength((prev) => prev - 1);
               break;
             default:
@@ -98,7 +103,7 @@ const StudentAdd = ({ route }) => {
     return () => {
       supabase.removeChannel(sub);
     };
-  }, []);
+  }, [supabaseRef.current]);
 
   const handleOnPress = () => {
     if (inQueue) {
@@ -119,7 +124,7 @@ const StudentAdd = ({ route }) => {
                   .from("queue_entries")
                   .delete()
                   .eq("queue", queueID)
-                  .eq("student", (await supabase.auth.getUser()).data.user.id);
+                  .eq("student", route.params.userId);
 
                 if (error) {
                   console.error("Error leaving the queue:", error);
@@ -155,7 +160,7 @@ const StudentAdd = ({ route }) => {
                 let { error } = await supabase.from("queue_entries").insert([
                   {
                     queue: queueID,
-                    student: (await supabase.auth.getUser()).data.user.id,
+                    student: route.params.userId,
                     location: route.params.location,
                     question: question,
                     tag: tag,
@@ -208,6 +213,19 @@ const StudentAdd = ({ route }) => {
           <Text style={styles.header}>No Queue Available</Text>
           <Text style={styles.description}>
             There is currently no queue available for this location.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (inQueue && queueLength === 0) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.container, { padding: 10 }]}>
+          <Text style={styles.header}>You are in the queue</Text>
+          <Text style={styles.description}>
+            You are currently the first person in the queue.
           </Text>
         </View>
       </SafeAreaView>
@@ -269,6 +287,17 @@ const StudentAdd = ({ route }) => {
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
+            <Pressable
+              style={{
+                position: "absolute",
+                top: 10,
+                right: 10,
+                padding: 10,
+              }}
+              onPress={() => setModalVisible(!modalVisible)}
+            >
+              <MaterialIcons name="close" size={24} color={Colors.Red} />
+            </Pressable>
             <TextInput
               value={tag}
               placeholder="Tag"
@@ -293,14 +322,17 @@ const StudentAdd = ({ route }) => {
                 handleOnPress();
               }}
               style={{
-                padding: 20,
-                backgroundColor: Colors.Blue,
-                borderRadius: 25,
-                width: "50%",
+                backgroundColor: Colors.Tertiary,
+                borderWidth: 1,
+                borderColor: Colors.Green,
+                padding: 15,
+                borderRadius: 10,
+                width: "80%",
+                margin: 10,
                 alignItems: "center",
               }}
             >
-              <Text style={{ fontWeight: "bold" }}>Submit</Text>
+              <Text style={{ color: "white", fontWeight: "600" }}>Submit</Text>
             </Pressable>
           </View>
         </View>

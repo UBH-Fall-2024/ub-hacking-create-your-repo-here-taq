@@ -9,7 +9,9 @@ import * as Haptics from "expo-haptics";
 import { Colors } from "../config/Colors";
 import { Platform, Pressable, View, Text } from "react-native";
 
-const LocationItem = memo(({ location, navigation, role, classID }) => {
+const LocationItem = memo(({ location, navigation, role, classID, userId }) => {
+  console.log("LocationItem:", userId);
+
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -26,10 +28,18 @@ const LocationItem = memo(({ location, navigation, role, classID }) => {
 
   const onPressHandler = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-    if (role === "Student") {
-      navigation.navigate("SQueue", { location: location, classID: classID });
+    if (role === "student") {
+      navigation.navigate("SQueue", {
+        location: location,
+        classID: classID,
+        userId: userId,
+      });
     } else {
-      navigation.navigate("Queue", { location: location, classID: classID });
+      navigation.navigate("Queue", {
+        location: location,
+        classID: classID,
+        userId: userId,
+      });
     }
   };
 

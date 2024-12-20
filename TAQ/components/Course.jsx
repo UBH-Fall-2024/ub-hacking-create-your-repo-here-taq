@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { memo } from "react";
+import React, { memo, useEffect } from "react";
 import { Colors } from "../config/Colors";
 import Animated, {
   FadeIn,
@@ -16,7 +16,9 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
-const Course = memo(({ course, navigation }) => {
+const Course = memo(({ course, navigation, userId }) => {
+  console.log(userId);
+
   const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
   const scale = useSharedValue(1);
@@ -36,10 +38,21 @@ const Course = memo(({ course, navigation }) => {
   const handleOnPress = () => {
     Haptics.impactAsync(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
     navigation.navigate("Location", {
-      courseID: course.class.id,
-      role: course.role,
+      courseID: course.supabaseCourseId,
+      role: course.auth_level,
+      userId: userId,
     });
   };
+
+  // May be a bit overkill, could be removed
+  // Has some issues
+  // useEffect(() => {
+  //   navigation.preload("Location", {
+  //     courseID: course.supabaseCourseId,
+  //     userId: userId,
+  //     role: course.auth_level,
+  //   });
+  // }, []);
 
   return (
     <AnimatedPressable
@@ -48,14 +61,15 @@ const Course = memo(({ course, navigation }) => {
       onPressOut={handlePressOut}
       onPress={handleOnPress}
     >
-      {course.role === "TA" ? (
+      {course.auth_level === "course_assistant" ||
+      course.auth_level === "instructor" ? (
         <View style={styles.labelContainer}>
           <Animated.Text
             entering={FadeIn.delay(100).damping(0.5).stiffness(100)}
             exiting={FadeIn.delay(100).damping(0.5).stiffness(100)}
             style={styles.roleLabel}
           >
-            {course.role}
+            {course.auth_level}
           </Animated.Text>
         </View>
       ) : null}
@@ -64,12 +78,12 @@ const Course = memo(({ course, navigation }) => {
         numberOfLines={2}
         style={[styles.name, { fontSize: Platform.OS === "android" ? 14 : 18 }]}
       >
-        {course.class.name}
+        {course.display_name}
       </Text>
       <Text
         style={[styles.code, { fontSize: Platform.OS === "android" ? 13 : 15 }]}
       >
-        {course.class.code}
+        {course.name}
       </Text>
     </AnimatedPressable>
   );

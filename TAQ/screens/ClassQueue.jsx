@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import QueueEntry from "../components/QueueEntry";
 import { Colors } from "../config/Colors";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
@@ -124,6 +124,10 @@ const ClassQueue = ({ route }) => {
           }
         )
         .subscribe();
+
+      return () => {
+        supabase.removeChannel(sub);
+      };
     });
   }, [classID, location]);
 

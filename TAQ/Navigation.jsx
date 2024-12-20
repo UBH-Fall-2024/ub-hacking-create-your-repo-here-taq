@@ -7,7 +7,7 @@ import Auth from "./screens/Auth";
 import StudentAdd from "./screens/StudentAdd";
 import ClassQueue from "./screens/ClassQueue";
 import { Colors } from "./config/Colors";
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 import * as linking from "expo-linking";
 
 const Stack = createNativeStackNavigator();
@@ -16,7 +16,6 @@ const prefix = linking.createURL("/");
 
 function RootStack() {
   return (
-    // <ClassQueue />
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Auth" component={Auth} />
       <Stack.Screen
@@ -32,21 +31,21 @@ function RootStack() {
         name="Location"
         component={Locations}
         options={{
-          animation: "fade",
+          animation: Platform.OS === "ios" ? "ios_from_right" : "fade",
         }}
       />
       <Stack.Screen
         name="SQueue"
         component={StudentAdd}
         options={{
-          animation: "fade",
+          animation: Platform.OS === "ios" ? "ios_from_right" : "fade",
         }}
       />
       <Stack.Screen
         name="Queue"
         component={ClassQueue}
         options={{
-          animation: "fade",
+          animation: Platform.OS === "ios" ? "ios_from_right" : "fade",
         }}
       />
     </Stack.Navigator>

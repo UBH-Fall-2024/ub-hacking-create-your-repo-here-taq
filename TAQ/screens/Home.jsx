@@ -1,6 +1,5 @@
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   StatusBar,
   StyleSheet,
@@ -11,18 +10,19 @@ import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Colors } from "../config/Colors";
-// import courses from "../assets/data/courses";
 import Course from "../components/Course";
 
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { supabase } from "../supabase";
-import CustomAlert from "../components/CustomAlert";
+import { supabase, removeSupabaseClient } from "../supabase";
+import { removeFromSecureStore } from "../helpers/secureStore";
+import { isTokenValid } from "../helpers/token";
 
-const Home = ({ navigation }) => {
+const Home = ({ navigation, route }) => {
   const [courses, setCourses] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  // const [modalVisible, setModalVisible] = useState(false);
+
+  const { userId, token } = route.params;
 
   const signoutButtonTriggerRef = useRef(false);
 
@@ -38,43 +38,95 @@ const Home = ({ navigation }) => {
 
   useEffect(() => {
     const fetchCourses = async () => {
-      const { data, error } = await supabase
-        .from("user_courses")
-        .select(
-          `
-          *,
-          class (*)
-        `
-        )
-        .eq("user", (await supabase.auth.getUser()).data.user.id);
+      const valid = await isTokenValid();
+      if (!valid) {
+        console.log(
+          "Token invalid, cannot fetch user info, redirecting user to auth screen..."
+        );
+        navigation.popTo("Auth");
+      }
+
+      const { data: supabaseCourses, error } = await supabase
+        .from("classes")
+        .select("*");
 
       if (error) {
-        console.error("Error fetching courses:", error);
-      } else {
-        console.log("Fetched courses:", data);
-        setCourses(data);
+        console.log(error);
+        return;
+      }
+
+      try {
+        console.log("Fetching user courses...");
+
+        const coursesResponse = await fetch(
+          `https://autolab.cse.buffalo.edu/api/v1/courses`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const coursesData = await coursesResponse.json();
+        console.log("Courses Data:", JSON.stringify(coursesData, null, 2));
+
+        const filteredCourses = coursesData
+          .map((autolabCourse) => {
+            const matchingCourse = supabaseCourses.find(
+              (sCourse) =>
+                sCourse.code.toLowerCase().trim() ===
+                autolabCourse.name.split("-")[0].toLowerCase()
+            );
+            return {
+              ...autolabCourse,
+              supabaseCourseId: matchingCourse ? matchingCourse.id : null,
+            };
+          })
+          .filter(
+            (course) =>
+              course.supabaseCourseId !== null &&
+              String(course.name)
+                .split("-")[1]
+                .includes(new Date().getFullYear().toString().slice(2))
+          );
+        console.log("Filtered Courses:", filteredCourses);
+
+        setCourses(filteredCourses);
+      } catch (e) {
+        console.error("Courses Fetch Error:", e);
       }
     };
 
     const fetchUser = async () => {
+      const valid = await isTokenValid();
+      if (!valid) {
+        console.log(
+          "Token invalid, cannot fetch user info, redirecting user to auth screen..."
+        );
+        navigation.popTo("Auth");
+      }
+
       const { data, error } = await supabase
         .from("users")
         .select("*")
-        .eq("id", (await supabase.auth.getUser()).data.user.id);
+        .eq("id", userId);
 
       if (error) {
-        console.error("Error fetching user:", error);
-        Alert.alert("Error", error.message);
-      } else {
-        console.log("Fetched user:", data);
-        setUser(data[0]);
+        console.log(error);
+        return;
       }
+
+      setUser(data[0]);
     };
 
-    Promise.all([fetchCourses(), fetchUser()]).then(() => {
-      setLoading(false);
-    });
-  }, []);
+    fetchCourses()
+      .finally(() => fetchUser())
+      .finally(() => setLoading(false))
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, [userId, token]);
 
   if (loading) {
     return (
@@ -114,8 +166,15 @@ const Home = ({ navigation }) => {
             <MaterialIcons
               name="logout"
               onPress={async () => {
-                await supabase.auth.signOut();
                 signoutButtonTriggerRef.current = true;
+                await removeFromSecureStore("autolab_token");
+                await removeFromSecureStore("autolab_token_expiry");
+                await removeFromSecureStore("supabase_jwt");
+                await removeFromSecureStore("supabase_jwt_expiry");
+                removeSupabaseClient();
+                console.log(
+                  "User signed out and token cleared, supabase client and jwt token removed"
+                );
                 navigation.goBack();
               }}
               size={30}
@@ -142,7 +201,12 @@ const Home = ({ navigation }) => {
             data={courses}
             numColumns={2}
             renderItem={({ item, index }) => (
-              <Course key={index} course={item} navigation={navigation} />
+              <Course
+                key={index}
+                course={item}
+                navigation={navigation}
+                userId={userId}
+              />
             )}
           />
         )}
@@ -172,9 +236,10 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 28,
-    fontWeight: "bold",
+    // fontWeight: "bold",
     color: Colors.Primary,
     width: "70%",
+    fontFamily: "Poppins-Bold"
   },
   sub: {
     fontSize: 16,

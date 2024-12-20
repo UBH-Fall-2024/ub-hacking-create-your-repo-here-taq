@@ -25,6 +25,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "scheme": "nextup"
+    "scheme": "nextup",
+    "plugins": [
+      "expo-secure-store",
+      "expo-font"
+    ]
   }
 }

@@ -29,6 +29,8 @@ const Locations = ({ navigation, route }) => {
   const [locations, setLocations] = useState([]);
   const [classID, setClassID] = useState(null);
 
+  console.log("Locations screen:", route.params);
+
   useEffect(() => {
     const fetchClass = async () => {
       let { data, error } = await supabase
@@ -98,6 +100,7 @@ const Locations = ({ navigation, route }) => {
               navigation={navigation}
               role={role}
               classID={classID}
+              userId={route.params.userId}
             />
           )}
         />
