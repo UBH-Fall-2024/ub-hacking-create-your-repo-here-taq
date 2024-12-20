@@ -16,6 +16,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { supabase, removeSupabaseClient } from "../supabase";
 import { removeFromSecureStore } from "../helpers/secureStore";
 import { isTokenValid } from "../helpers/token";
+import GradientText from "../components/GradientText";
 
 const Home = ({ navigation, route }) => {
   const [courses, setCourses] = useState([]);
@@ -160,6 +161,9 @@ const Home = ({ navigation, route }) => {
               alignItems: "center",
             }}
           >
+            {/* <GradientText style={styles.welcomeText}>
+              Welcome back, {user.email.split("@")[0]}!
+            </GradientText> */}
             <Text style={styles.welcomeText}>
               Welcome back, {user.email.split("@")[0]}!
             </Text>
@@ -238,13 +242,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     // fontWeight: "bold",
     color: Colors.Primary,
-    width: "70%",
-    fontFamily: "Poppins-Bold"
+    // width: "70%",
+    fontFamily: "Poppins-Bold",
   },
   sub: {
     fontSize: 16,
     color: Colors.Secondary,
     marginVertical: 10,
+    fontFamily: "Montserrat-Medium",
   },
   fallbackText: {
     color: Colors.Secondary,

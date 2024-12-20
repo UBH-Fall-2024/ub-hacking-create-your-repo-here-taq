@@ -120,13 +120,15 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 25,
-    fontWeight: "bold",
+    // fontWeight: "bold",
     color: Colors.Primary,
     textAlign: "left",
+    fontFamily: "Poppins-Bold",
   },
   sub: {
     fontSize: 16,
     color: Colors.Secondary,
     marginVertical: 5,
+    fontFamily: "Montserrat-Medium",
   },
 });

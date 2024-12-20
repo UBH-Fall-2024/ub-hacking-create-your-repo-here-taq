@@ -7,7 +7,7 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { Colors } from "../config/Colors";
-import { Platform, Pressable, View, Text } from "react-native";
+import { Platform, Pressable, View, Text, Dimensions } from "react-native";
 
 const LocationItem = memo(({ location, navigation, role, classID, userId }) => {
   console.log("LocationItem:", userId);
@@ -67,8 +67,9 @@ const LocationItem = memo(({ location, navigation, role, classID, userId }) => {
         <Text
           style={{
             color: Colors.Background,
-            fontWeight: "bold",
-            fontSize: Platform.OS === "android" ? 14 : 18,
+            // fontWeight: "bold",
+            fontSize: Dimensions.get("window").width / 25,
+            fontFamily: "Montserrat-Bold",
           }}
         >
           {location}

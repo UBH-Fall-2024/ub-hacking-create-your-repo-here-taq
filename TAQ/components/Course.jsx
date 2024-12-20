@@ -114,11 +114,13 @@ const styles = StyleSheet.create({
     color: "#fcc6a4",
   },
   name: {
-    fontWeight: "bold",
+    // fontWeight: "bold",
     color: "black",
     marginBottom: 10,
+    fontFamily: "Poppins-Bold",
   },
   code: {
     color: "black",
+    fontFamily: "Montserrat-Medium",
   },
 });

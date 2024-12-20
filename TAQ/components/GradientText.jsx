@@ -4,9 +4,6 @@ import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   interpolateColor,
-  runOnJS,
-  useAnimatedProps,
-  useAnimatedReaction,
   useSharedValue,
   withRepeat,
   withTiming,
@@ -20,26 +17,6 @@ const GradientText = (props) => {
 
   const progress = useSharedValue(0);
 
-  // Update colors using state
-  const updateColors = (progressValue) => {
-    const color1 = interpolateColor(
-      progressValue,
-      [0, 1],
-      ["#4c669f", "#ff9e6c"]
-    );
-    const color2 = interpolateColor(
-      progressValue,
-      [0, 1],
-      ["#3b5998", "#feb47b"]
-    );
-    const color3 = interpolateColor(
-      progressValue,
-      [0, 1],
-      ["#192f6a", "#ff6f91"]
-    );
-    setColors([color1, color2, color3]);
-  };
-
   useEffect(() => {
     progress.value = 0;
     progress.value = withRepeat(
@@ -51,12 +28,33 @@ const GradientText = (props) => {
     );
   }, []);
 
-  useAnimatedReaction(
-    () => progress.value,
-    (currentValue) => {
-      runOnJS(updateColors)(currentValue);
-    }
-  );
+  const generateAnimatedColors = () => {
+    const color1 = interpolateColor(
+      progress.value,
+      [0, 1],
+      ["#4c669f", "#ff9e6c"]
+    );
+    const color2 = interpolateColor(
+      progress.value,
+      [0, 1],
+      ["#3b5998", "#feb47b"]
+    );
+    const color3 = interpolateColor(
+      progress.value,
+      [0, 1],
+      ["#192f6a", "#ff6f91"]
+    );
+
+    return [color1, color2, color3];
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setColors(generateAnimatedColors());
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <MaskedView maskElement={<Text {...props} />}>

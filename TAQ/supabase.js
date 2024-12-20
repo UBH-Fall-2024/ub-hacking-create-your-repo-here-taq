@@ -5,7 +5,7 @@ import { getFromSecureStore, saveToSecureStore } from "./helpers/secureStore";
 const supabaseUrl = "https://ijcorhcaxkyxheioiqti.supabase.co";
 const supabaseAnonKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqY29yaGNheGt5eGhlaW9pcXRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzExNjkxMzYsImV4cCI6MjA0Njc0NTEzNn0.a5jb9HY-Sx6u4AgpxM9ctTtTfD44DVOuSHYjT3wH3Us";
-const jwtServerUrl = "https://b400-106-51-174-158.ngrok-free.app/generate-jwt";
+const jwtServerUrl = "https://a634-106-51-171-57.ngrok-free.app/generate-jwt";
 
 const fetchJwtToken = async (autolab_token) => {
   const supabaseJwt = await getFromSecureStore("supabase_jwt");

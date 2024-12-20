@@ -34,7 +34,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 const AUTOLAB_DOMAIN = "https://autolab.cse.buffalo.edu";
 
-const autolabTokenUrl = "https://b400-106-51-174-158.ngrok-free.app/secret";
+const autolabTokenUrl = "https://a634-106-51-171-57.ngrok-free.app/secret";
 
 // Configuration for oauth
 const discovery = {
@@ -43,7 +43,9 @@ const discovery = {
 };
 
 const Auth = ({ navigation }) => {
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(
+    "JIbM3TvF2RDlhpirbEGok3kcUPU5m-BhpQTL17t_f98"
+  );
   const [error, setError] = useState(null);
 
   // Generate the correct redirect URI for Expo Go

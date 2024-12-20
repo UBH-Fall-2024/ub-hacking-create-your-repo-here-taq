@@ -21,8 +21,15 @@ export default function App() {
     // Load fonts here for now(later in splashScreen)
     const loadFonts = async () => {
       await Font.loadAsync({
+        // Poppins
         "Poppins-Regular": require("./assets/fonts/Poppins/Poppins-Regular.ttf"),
+        "Poppins-Medium": require("./assets/fonts/Poppins/Poppins-Medium.ttf"),
         "Poppins-Bold": require("./assets/fonts/Poppins/Poppins-Bold.ttf"),
+
+        // Montserrat
+        "Montserrat-Regular": require("./assets/fonts/Montserrat/Montserrat-Regular.ttf"),
+        "Montserrat-Medium": require("./assets/fonts/Montserrat/Montserrat-Medium.ttf"),
+        "Montserrat-Bold": require("./assets/fonts/Montserrat/Montserrat-Bold.ttf"),
       });
     };
 
